@@ -7,13 +7,13 @@ from itertools import pairwise
 
 from custom_components.pobovi_ring import protocol
 
-ASH_144 = "55 aa 13 0e d0 bc 07 6b 90 de 07 6b 00 52 01 02 90 00"
-ASH_24 = "55 aa 13 14 40 1f 08 6b e0 24 08 6b 2c 2e 03 02 12 00 01 03 00 02 03 00"
-ASH_65 = (
+SLEEP_144 = "55 aa 13 0e d0 bc 07 6b 90 de 07 6b 00 52 01 02 90 00"
+SLEEP_24 = "55 aa 13 14 40 1f 08 6b e0 24 08 6b 2c 2e 03 02 12 00 01 03 00 02 03 00"
+SLEEP_65 = (
     "55 aa 13 20 40 1f 08 6b 7c 2e 08 6b 2c 2e 07 02 1d 00 00 05 00 02 0a 00 "
     "01 0b 00 02 03 00 01 02 00 02 04 00"
 )
-TYLER_NIGHT = (
+SLEEP_NIGHT = (
     "55 aa 13 86 90 a2 07 6b d0 25 08 6b 00 57 29 02 0c 00 03 0f 00 02 25 00 "
     "03 12 00 02 05 00 00 04 00 02 0b 00 01 07 00 02 03 00 01 07 00 02 0f 00 "
     "01 06 00 02 12 00 01 0e 00 02 0e 00 03 0f 00 02 05 00 03 0b 00 02 05 00 "
@@ -43,10 +43,10 @@ def test_parse_frame_rejects_garbage() -> None:
 
 def test_sleep_sessions_decode() -> None:
     expected = {
-        ASH_144: (144, 82, 0, 1),
-        ASH_24: (24, 46, 44, 3),
-        ASH_65: (65, 46, 44, 7),
-        TYLER_NIGHT: (560, 87, 0, 41),
+        SLEEP_144: (144, 82, 0, 1),
+        SLEEP_24: (24, 46, 44, 3),
+        SLEEP_65: (65, 46, 44, 7),
+        SLEEP_NIGHT: (560, 87, 0, 41),
     }
     for frame, (minutes, score, pauses, segments) in expected.items():
         record = decode(frame)
@@ -60,9 +60,9 @@ def test_sleep_sessions_decode() -> None:
 
 
 def test_sleep_record_converts_to_sparky_session_with_stages() -> None:
-    record = decode(TYLER_NIGHT)
+    record = decode(SLEEP_NIGHT)
     assert record is not None
-    payload = record.as_sparky("tyler_ring")
+    payload = record.as_sparky("test_ring")
     assert payload is not None
     assert payload["type"] == "SleepSession"
     assert payload["duration_in_seconds"] == 560 * 60
@@ -82,7 +82,7 @@ def test_respiration_decodes() -> None:
     assert first is not None and first.metric == "respiratory_rate"
     assert first.value == 13.8
     assert second is not None and second.value == 12.4
-    payload = first.as_sparky("tyler_ring")
+    payload = first.as_sparky("test_ring")
     assert payload is not None
     assert payload["type"] == "ring_respiration"
     assert payload["unit"] == "breaths/min"
@@ -92,12 +92,12 @@ def test_device_info_reply() -> None:
     payload = (
         b"POBO Ring 001".ljust(32, b"\x00")
         + b"\x0b\x05"
-        + b"GX9GVKAL1059\x00reserve"
+        + b"TESTSERIAL0001\x00reserve"
     )
     info = protocol.decode_device_info(protocol.RingFrame(0x32, payload))
     assert info["device_name"] == "POBO Ring 001"
     assert info["firmware_flag"] == "0b 05"
-    assert info["serial"] == "GX9GVKAL1059"
+    assert info["serial"] == "TESTSERIAL0001"
     assert info["tail"] == "reserve"
 
 
@@ -132,6 +132,6 @@ def test_firmware_version_parsing() -> None:
 
 
 def test_record_timestamp_is_utc() -> None:
-    record = decode(ASH_144)
+    record = decode(SLEEP_144)
     assert record is not None
     assert record.timestamp == datetime(2026, 11, 26, 5, 0, tzinfo=UTC)

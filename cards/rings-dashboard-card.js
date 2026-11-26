@@ -1,54 +1,5 @@
 const CARD_TAG = 'rings-dashboard-card';
 
-const DEFAULT_RINGS = [
-  {
-    key: 'tyler',
-    name: 'Tyler',
-    accent: '#6366f1',
-    entities: {
-      battery: 'sensor.tyler_battery',
-      steps: 'sensor.tyler_steps',
-      calories: 'sensor.tyler_calories',
-      active: 'sensor.tyler_active_minutes',
-      hr: 'sensor.tyler_heart_rate',
-      hrv: 'sensor.tyler_hrv',
-      spo2: 'sensor.tyler_blood_oxygen',
-      resp: 'sensor.tyler_respiratory_rate',
-      stress: 'sensor.tyler_stress',
-      sleep: 'sensor.tyler_sleep',
-      sleepScore: 'sensor.tyler_sleep_score',
-      temp: 'sensor.tyler_temperature',
-      sync: 'sensor.tyler_last_sync',
-      firmware: 'sensor.tyler_firmware',
-      rssi: 'sensor.tyler_signal_strength',
-      find: 'button.tyler_find_ring'
-    }
-  },
-  {
-    key: 'ashley',
-    name: 'Ashley',
-    accent: '#ec4899',
-    entities: {
-      battery: 'sensor.roaming_ashleys_ring_battery',
-      steps: 'sensor.roaming_ashleys_ring_steps',
-      calories: 'sensor.roaming_ashleys_ring_calories',
-      active: 'sensor.roaming_ashleys_ring_active_minutes',
-      hr: 'sensor.roaming_ashleys_ring_heart_rate',
-      hrv: 'sensor.roaming_ashleys_ring_hrv',
-      spo2: 'sensor.roaming_ashleys_ring_blood_oxygen',
-      resp: 'sensor.roaming_ashleys_ring_respiratory_rate',
-      stress: 'sensor.roaming_ashleys_ring_stress',
-      sleep: 'sensor.roaming_ashleys_ring_sleep',
-      sleepScore: 'sensor.roaming_ashleys_ring_sleep_score',
-      temp: 'sensor.roaming_ashleys_ring_temperature',
-      sync: 'sensor.roaming_ashleys_ring_last_sync',
-      firmware: 'sensor.roaming_ashleys_ring_firmware',
-      rssi: 'sensor.roaming_ashleys_ring_signal_strength',
-      find: 'button.roaming_ashleys_ring_find_ring'
-    }
-  }
-];
-
 const STYLE = `
   :host {
     --ring-bg: var(--card-background-color, #1a1d23);
@@ -161,9 +112,10 @@ const STYLE = `
 class RingsDashboardCard extends HTMLElement {
   setConfig(config) {
     this.config = config || {};
-    this._rings = Array.isArray(this.config.rings) && this.config.rings.length
-      ? this.config.rings
-      : DEFAULT_RINGS;
+    if (!Array.isArray(this.config.rings) || !this.config.rings.length) {
+      throw new Error('Add a `rings` list to the card configuration (see the README).');
+    }
+    this._rings = this.config.rings;
     this._refs = {};
     this._stats = {};
     this._built = false;

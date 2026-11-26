@@ -18,6 +18,7 @@ from homeassistant.core import HomeAssistant, SupportsResponse, callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.storage import Store
 
 from .const import DOMAIN
 from .coordinator import PoboviRingCoordinator
@@ -28,6 +29,16 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[Platform] = [Platform.SENSOR, Platform.BUTTON]
 
 SERVICE_FLASH_FIRMWARE = "flash_firmware"
+
+STORE_SUFFIXES = (
+    "pushed",
+    "frames",
+    "pending",
+    "latest",
+    "model",
+    "device",
+    "sleep_sessions",
+)
 
 FLASH_FIRMWARE_SCHEMA = vol.Schema(
     {
@@ -130,3 +141,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def _async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Reload the entry when options change."""
     await hass.config_entries.async_reload(entry.entry_id)
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Delete the integration's cached stores when the entry is removed."""
+    for suffix in STORE_SUFFIXES:
+        store = Store(hass, 1, f"{DOMAIN}.{entry.entry_id}.{suffix}")
+        await store.async_remove()

@@ -12,15 +12,17 @@
       ]
     }
   ],
-  "codeowners": [],
+  "codeowners": [
+    "@tgkenney"
+  ],
   "config_flow": true,
   "dependencies": [
     "bluetooth"
   ],
-  "documentation": "https://github.com/tgkenney/home-assistant-pobovi-ring",
+  "documentation": "https://gitea.tgkenney.dev/tgkenney/ha-poboviring",
   "integration_type": "device",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/tgkenney/home-assistant-pobovi-ring/issues",
+  "issue_tracker": "https://gitea.tgkenney.dev/tgkenney/ha-poboviring/issues",
   "requirements": [
     "bleak-retry-connector>=3.5.0"
   ],

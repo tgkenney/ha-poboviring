@@ -128,7 +128,7 @@ DEFAULT_POLL_INTERVAL: Final = 30
 DEFAULT_COLLECT_SECONDS: Final = 20
 DEFAULT_ENABLE_REALTIME: Final = False
 DEFAULT_SPARKY_ENABLED: Final = False
-DEFAULT_SPARKY_URL: Final = "https://sparkyfitness.apps.tgkenney.dev"
+DEFAULT_SPARKY_URL: Final = ""
 DEFAULT_SPARKY_SOURCE: Final = "pobovi_ring"
 
 MIN_POLL_INTERVAL: Final = 5

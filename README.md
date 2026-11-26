@@ -11,8 +11,8 @@ Reverse engineered from the POBOVi Ring Android app `V1.2.63` (283).
 ## Requirements
 
 - Home Assistant with the `bluetooth` integration.
-- At least one **connectable** Bluetooth proxy near the ring. The ESPHome
-  proxies in this setup already qualify because they run:
+- At least one **connectable** Bluetooth proxy near the ring. An ESPHome proxy
+  qualifies when it runs:
 
   ```yaml
   esp32_ble_tracker:
@@ -24,6 +24,16 @@ Reverse engineered from the POBOVi Ring Android app `V1.2.63` (283).
 
   `active: false` proxies can hear advertisements but cannot be used for the
   GATT connection this integration needs.
+
+## What you can do
+
+- Track sleep sessions, including naps, with duration, score and
+  deep/light/REM/awake minutes — no vendor app required.
+- See steps, calories, active minutes, heart rate, HRV, SpO2, stress,
+  temperature and respiration in Home Assistant.
+- Upload records to your own SparkyFitness server, one profile per ring.
+- Write the ring's profile and cycle settings, and buzz it to find it.
+- Update the ring firmware over Bluetooth through a guarded service.
 
 ## Installation
 
@@ -41,6 +51,15 @@ The ring is discovered automatically (manufacturer data `0xFFFF` starting with
 `POBO`). You can also add it manually with its Bluetooth address
 (`Settings → Devices & Services → Add Integration → POBOVi Ring`).
 
+## Removing the integration
+
+1. Delete the POBOVi Ring entry under **Settings → Devices & Services**. Home
+   Assistant removes the entry, its devices and entities, and the integration
+   deletes its cached stores.
+2. Remove the files if installed manually (`config/custom_components/pobovi_ring`)
+   or uninstall the repository from HACS.
+3. Delete the dashboard cards and their inline resources if you added them.
+
 ## Repository layout and development
 
 | Path | Contents |
@@ -49,6 +68,7 @@ The ring is discovered automatically (manufacturer data `0xFFFF` starting with
 | `cards/` | Rings dashboard card sources, deployed as inline Lovelace resources |
 | `scripts/` | Version bump and dashboard-card deployment |
 | `tests/` | Codec, session and firmware-container tests |
+| `docs/` | Quality-scale review and roadmap |
 | `.woodpecker/` | CI: lint/test/secret scan plus the tag release pipeline |
 | `openspec/` | Specifications and change proposals |
 
@@ -80,7 +100,8 @@ and agent commands are documented in `AGENTS.md`.
 
 ## Configuration
 
-Everything user-specific lives in the config entry options, not in YAML.
+Setup asks for the ring's Bluetooth address and a display name. Everything else
+lives in the config entry options, not in YAML.
 
 | Option | Default | Notes |
 |---|---|---|
@@ -88,7 +109,7 @@ Everything user-specific lives in the config entry options, not in YAML.
 | Seconds to listen per poll | 20 s | How long each session collects pushed records |
 | Realtime reading | off | Heart rate is always sampled. This adds HRV, SpO2 and temperature |
 | Push to SparkyFitness | off | Enables the upload |
-| SparkyFitness base URL | `https://sparkyfitness.apps.tgkenney.dev` | `/api/health-data` is appended |
+| SparkyFitness base URL | — (required to enable) | Your server's base URL; `/api/health-data` is appended |
 | SparkyFitness API key | — | Password field, stored in the config entry |
 | Source name | `pobovi_ring` | Sent as `source` on each record |
 | Write ring profile | off | Sends gender/birthday/height/weight/stride (cmd `0x31`) |
@@ -101,6 +122,42 @@ redacted in diagnostics.
 
 Generate the key in SparkyFitness under **Settings → API key**. The server must
 have `ENCRYPTION_KEY` configured before it will issue one.
+
+## Dashboard cards
+
+The repository ships two cards. Both require a `rings` list; the card shows a
+configuration error instead of guessing entity IDs when it is missing.
+
+```yaml
+type: custom:rings-dashboard-card
+rings:
+  - key: ring1
+    name: Ring 1
+    color: '#6366f1'
+    entities:
+      battery: sensor.ring1_battery
+      steps: sensor.ring1_steps
+      calories: sensor.ring1_calories
+      active: sensor.ring1_active_minutes
+      hr: sensor.ring1_heart_rate
+      hrv: sensor.ring1_hrv
+      spo2: sensor.ring1_blood_oxygen
+      resp: sensor.ring1_respiratory_rate
+      stress: sensor.ring1_stress
+      sleep: sensor.ring1_sleep
+      sleepScore: sensor.ring1_sleep_score
+      temp: sensor.ring1_temperature
+      sync: sensor.ring1_last_sync
+      firmware: sensor.ring1_firmware
+      rssi: sensor.ring1_signal_strength
+      find: button.ring1_find_ring
+```
+
+The Trends card (`custom:rings-trends-card`) uses the same `rings` array but
+only reads `steps`, `sleep`, `sleepScore`, `hr`, `hrv`, `spo2`, `resp` and
+`stress`. The cards are inline Lovelace resources; see
+[Repository layout and development](#repository-layout-and-development) for
+deployment.
 
 ## Supported models / firmware variants
 
@@ -171,7 +228,7 @@ Call `pobovi_ring.flash_firmware` with any entity of the ring:
 ```yaml
 action: pobovi_ring.flash_firmware
 data:
-  entity_id: sensor.tyler_battery
+  entity_id: sensor.ring1_battery
   confirm: true
   dry_run: true      # default; runs every check without flashing
 ```
@@ -405,15 +462,17 @@ profile.
 Setup for two people:
 
 1. Add the first ring (it is auto-discovered). Give it a name such as
-   `Tyler Ring`. The default name already carries the last four hex digits of
-   the address, so two rings never collide on entity IDs.
-2. Open **Configure** on that entry and paste **Tyler's** SparkyFitness API key
-   (generated while signed in as Tyler). Set the source name if you want.
-3. Repeat for the second ring with **Ashley's** key. Add it by address if
-   discovery shows two identical-looking entries — the confirm dialog shows each
-   ring's Bluetooth address so you can tell them apart.
-4. Both rings now produce separate devices (e.g. `sensor.tyler_ring_heart_rate`
-   and `sensor.ashley_ring_heart_rate`) and upload to separate profiles.
+   `Ring 1`. The default name already carries the last four hex digits of the
+   address, so two rings never collide on entity IDs.
+2. Open **Configure** on that entry and paste the SparkyFitness API key for
+   that person (generated while signed in as that user). Set the source name if
+   you want.
+3. Repeat for the second ring with its own key. Add it by address if discovery
+   shows two identical-looking entries — the confirm dialog shows each ring's
+   Bluetooth address so you can tell them apart.
+4. Both rings now produce separate devices (for example
+   `sensor.ring_1_heart_rate` and `sensor.ring_2_heart_rate`) and upload to
+   separate profiles.
 
 Notes:
 
@@ -428,6 +487,40 @@ Notes:
 - Two rings can poll at the same time; an ESPHome proxy accepts a few
   concurrent connections. If you run many rings through one proxy, stagger the
   poll intervals.
+
+## Automation examples
+
+A morning sleep summary. Replace the notify target and entity ID with your own.
+Templates are only used for the message text; the trigger and condition are
+native.
+
+```yaml
+automation:
+  - alias: Ring sleep summary
+    trigger:
+      - trigger: time
+        at: "08:00:00"
+    condition:
+      - condition: state
+        entity_id: sensor.ring1_sleep
+        state_not: "unavailable"
+    action:
+      - action: notify.mobile_app_phone
+        data:
+          title: Sleep last night
+          message: >-
+            {{ states('sensor.ring1_sleep') }} min, score
+            {{ state_attr('sensor.ring1_sleep', 'score') }};
+            deep {{ state_attr('sensor.ring1_sleep', 'deep_minutes') }} min.
+```
+
+## Quality scale
+
+The integration is assessed against the Home Assistant integration quality
+scale in [`docs/quality-scale.md`](docs/quality-scale.md). No tier is claimed
+yet; that document lists every rule, the current status and the work packages
+to reach Platinum. The official tier is awarded through Home Assistant core
+review; this repository tracks the same rules for a custom integration.
 
 ## Troubleshooting
 
@@ -472,9 +565,9 @@ esp32_ble_tracker:
     window: 300ms
 ```
 
-Then check the real signal strength. In this install every proxy heard the ring
-at only **-92 to -101 dBm** while a Mac a few feet away saw -65 to -87 dBm, so
-the ring's radio is extremely weak. If `connected_via` or the Bermuda data shows
+Then check the real signal strength. In testing, every proxy heard the ring at
+only **-92 to -101 dBm** while a Mac a few feet away saw -65 to -87 dBm, so the
+ring's radio is extremely weak. If `connected_via` or the Bermuda data shows
 -90 dBm or worse, duty cycle alone will not fix it: add a connectable proxy
 (`bluetooth_proxy: active: true`) in the room where the ring actually sits —
 desk and bedside are the two that matter for a ring.
@@ -484,7 +577,7 @@ retries as soon as a connectable proxy hears the ring (at most every two
 minutes), rather than waiting for the next scheduled poll. To force one
 immediately, call `homeassistant.update_entity` on `sensor.<ring>_last_sync`.
 
-## Caveats
+## Known limitations
 
 - **One connection at a time, and one syncer.** While Home Assistant is syncing,
   the vendor app cannot connect, and the ring's history is split between whichever

@@ -9,6 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- A quality-scale review and roadmap in `docs/quality-scale.md`, covering all
+  54 rules of the current Home Assistant integration quality scale.
+
+### Changed
+- The repository is ready for public use: the default SparkyFitness URL is now
+  empty (the options flow still requires one when pushing is enabled), the
+  manifest points at this repository and names a code owner, and diagnostics no
+  longer include the SparkyFitness health readback.
+- Both dashboard cards require a `rings` configuration; the personal entity and
+  name defaults are gone.
+- README examples are instance-neutral, with removal instructions, use cases,
+  an automation example, a card configuration example, and a "Known
+  limitations" section.
+- Deleting a config entry now removes the integration's cached stores.
+- Test fixtures no longer use person names or a real ring serial.
+
 ## [0.8.7] - 2026-11-26
 
 ### Fixed

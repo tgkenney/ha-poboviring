@@ -41,7 +41,6 @@ async def async_get_config_entry_diagnostics(
         "ota": coordinator.ota_state,
         "sparky_last_push": coordinator.last_push,
         "sparky_account": coordinator.sparky_account,
-        "sparky_readback_today": coordinator.sparky_readback,
         "command_counts": None
         if snapshot is None
         else {f"0x{cmd:02X}": count for cmd, count in sorted(snapshot.command_counts.items())},

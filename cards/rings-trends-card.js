@@ -1,38 +1,5 @@
 const CARD_TAG = 'rings-trends-card';
 
-const RINGS = [
-  {
-    key: 'tyler',
-    name: 'Tyler',
-    color: '#6366f1',
-    entities: {
-      steps: 'sensor.tyler_steps',
-      sleep: 'sensor.tyler_sleep',
-      sleepScore: 'sensor.tyler_sleep_score',
-      hr: 'sensor.tyler_heart_rate',
-      hrv: 'sensor.tyler_hrv',
-      spo2: 'sensor.tyler_blood_oxygen',
-      resp: 'sensor.tyler_respiratory_rate',
-      stress: 'sensor.tyler_stress'
-    }
-  },
-  {
-    key: 'ashley',
-    name: 'Ashley',
-    color: '#ec4899',
-    entities: {
-      steps: 'sensor.roaming_ashleys_ring_steps',
-      sleep: 'sensor.roaming_ashleys_ring_sleep',
-      sleepScore: 'sensor.roaming_ashleys_ring_sleep_score',
-      hr: 'sensor.roaming_ashleys_ring_heart_rate',
-      hrv: 'sensor.roaming_ashleys_ring_hrv',
-      spo2: 'sensor.roaming_ashleys_ring_blood_oxygen',
-      resp: 'sensor.roaming_ashleys_ring_respiratory_rate',
-      stress: 'sensor.roaming_ashleys_ring_stress'
-    }
-  }
-];
-
 const PANELS = [
   { id: 'steps', title: 'Steps', icon: 'mdi:walk', period: 'day', type: 'bar', stat: 'change', days: 7 },
   { id: 'sleep', title: 'Sleep', icon: 'mdi:sleep', period: 'day', type: 'bar', stat: 'max', days: 7, format: 'duration' },
@@ -70,8 +37,6 @@ const STYLE = `
   .ptitle { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 650; color: var(--primary-text-color); }
   .ptitle ha-icon { --mdc-icon-size: 18px; color: var(--secondary-text-color); }
   .ptitle .meta { margin-left: auto; display: flex; gap: 12px; font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .ptitle .meta .tyler { color: #6366f1; }
-  .ptitle .meta .ashley { color: #ec4899; }
   .chart { height: 98px; margin-top: 10px; display: flex; flex-direction: column; }
   .chart svg { width: 100%; flex: 1 1 auto; display: block; color: var(--primary-text-color); }
   .bars { flex: 1 1 auto; display: flex; align-items: flex-end; gap: 6px; }
@@ -102,9 +67,10 @@ const STYLE = `
 class RingsTrendsCard extends HTMLElement {
   setConfig(config) {
     this.config = config || {};
-    this._rings = Array.isArray(this.config.rings) && this.config.rings.length
-      ? this.config.rings
-      : RINGS;
+    if (!Array.isArray(this.config.rings) || !this.config.rings.length) {
+      throw new Error('Add a `rings` list to the card configuration (see the README).');
+    }
+    this._rings = this.config.rings;
     this._panels = Array.isArray(this.config.panels) && this.config.panels.length
       ? this.config.panels
       : PANELS;
@@ -212,7 +178,7 @@ class RingsTrendsCard extends HTMLElement {
       this._rings.forEach((ring) => {
         const value = this._num(ring.entities[panel.id]);
         const span = document.createElement('span');
-        span.className = ring.key;
+        span.style.color = ring.color || 'inherit';
         if (value === null) {
           span.textContent = ring.name + ' \u2014';
         } else {
