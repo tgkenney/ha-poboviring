@@ -1,0 +1,42 @@
+# Ruff configuration for POBOVi Ring
+# https://docs.astral.sh/ruff/configuration/
+
+target-version = "py312"
+line-length = 100
+
+include = ["custom_components/**/*.py", "tests/**/*.py"]
+
+[lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort (import sorting)
+    "UP",    # pyupgrade (modern Python syntax)
+    "B",     # flake8-bugbear (common bugs)
+    "SIM",   # flake8-simplify
+    "RUF",   # Ruff-specific rules
+    "S",     # flake8-bandit (overlaps with bandit but catches basics)
+    "ASYNC", # flake8-async
+    "LOG",   # flake8-logging
+]
+ignore = [
+    "S101",  # assert usage is fine in tests
+    "E501",  # line length handled by formatter
+    "RUF001", # allow unicode chars in UI-facing strings
+]
+
+fixable = ["I", "F401", "UP", "W", "RUF", "SIM"]
+unfixable = []
+
+[lint.per-file-ignores]
+"tests/**/*.py" = [
+    "S",      # security warnings don't apply to test code
+]
+
+[lint.isort]
+known-first-party = ["custom_components.pobovi_ring"]
+
+[format]
+quote-style = "double"
+indent-style = "space"

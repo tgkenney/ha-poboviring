@@ -1,0 +1,136 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "confirm": {
+        "title": "Add POBOVi Ring",
+        "description": "A POBOVi Ring was discovered at **{address}**. Give it a name so several rings stay distinguishable, then add it.",
+        "data": {
+          "name": "Name"
+        }
+      },
+      "user": {
+        "title": "Add POBOVi Ring",
+        "description": "Enter the Bluetooth address of the ring. The name defaults to something unique per address.",
+        "data": {
+          "address": "Bluetooth address",
+          "name": "Name"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "This ring is already configured."
+    },
+    "error": {
+      "invalid_address": "That is not a valid Bluetooth address."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "POBOVi Ring options",
+        "description": "Configure how often this ring is polled and where to send its data. Each ring has its own API key, so each one writes to a different SparkyFitness profile.",
+        "data": {
+          "poll_interval": "Poll interval",
+          "collect_seconds": "Seconds to listen per poll",
+          "enable_realtime": "Also take HRV, SpO2 and temperature readings",
+          "sparky_enabled": "Push data to SparkyFitness",
+          "sparky_url": "SparkyFitness base URL",
+          "sparky_api_key": "SparkyFitness API key (leave blank to keep the current key)",
+          "sparky_source": "Source name sent to SparkyFitness",
+          "ring_profile_enabled": "Write the ring profile on every sync",
+          "ring_gender": "Ring gender",
+          "ring_birthdate": "Birthday",
+          "ring_height_cm": "Height",
+          "ring_weight_kg": "Weight",
+          "ring_stride_cm": "Stride length (0 = let the ring decide)",
+          "ring_cycle_enabled": "Write cycle tracking settings",
+          "ring_cycle_start": "Last period start",
+          "ring_cycle_duration": "Period length",
+          "ring_cycle_length": "Cycle length",
+          "find_ring_seconds": "Find-my-ring duration"
+        },
+        "data_description": {
+          "enable_realtime": "Heart rate is always sampled so every poll actually syncs. Enabling this adds HRV, SpO2 and temperature, which uses more ring battery.",
+          "sparky_api_key": "Create one in SparkyFitness under Settings while signed in as the person whose profile should receive this ring's data.",
+          "sparky_source": "Defaults to the ring name. Used to tell rings apart in SparkyFitness.",
+          "ring_profile_enabled": "Sends cmd 0x31 so the ring can calculate calories, distance and step length without the vendor app.",
+          "ring_gender": "The protocol only carries two values: 'male' sends 1, 'unspecified' sends 0.",
+          "ring_birthdate": "Age is derived from this; the ring receives year - 1900.",
+          "ring_stride_cm": "Sent in centimetres, matching the app. Leave at 0 to let the ring derive it from height.",
+          "ring_cycle_enabled": "Sends cmd 0x15 so the ring can track and predict the cycle. Only needed for a ring worn by someone who uses this feature.",
+          "ring_cycle_start": "First day of the most recent period. The ring receives year - 1900.",
+          "ring_cycle_duration": "Number of bleeding days.",
+          "ring_cycle_length": "Typical number of days between period starts.",
+          "find_ring_seconds": "How long the ring buzzes when the Find ring button is pressed."
+        }
+      }
+    },
+    "error": {
+      "api_key_required": "An API key is required when SparkyFitness pushing is enabled.",
+      "url_required": "A SparkyFitness URL is required when SparkyFitness pushing is enabled."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      },
+      "heart_rate": {
+        "name": "Heart rate"
+      },
+      "hrv": {
+        "name": "HRV"
+      },
+      "spo2": {
+        "name": "Blood oxygen"
+      },
+      "steps": {
+        "name": "Steps"
+      },
+      "calories": {
+        "name": "Calories"
+      },
+      "active_minutes": {
+        "name": "Active minutes"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "sleep": {
+        "name": "Sleep"
+      },
+      "last_sync": {
+        "name": "Last sync"
+      },
+      "sparky_status": {
+        "name": "SparkyFitness status",
+        "state": {
+          "ok": "OK",
+          "error": "Error",
+          "disabled": "Disabled"
+        }
+      },
+      "stress": {
+        "name": "Stress"
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "signal_strength": {
+        "name": "Signal strength"
+      },
+      "respiratory_rate": {
+        "name": "Respiratory rate"
+      },
+      "sleep_score": {
+        "name": "Sleep score"
+      }
+    },
+    "button": {
+      "find_ring": {
+        "name": "Find ring"
+      }
+    }
+  }
+}

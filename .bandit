@@ -1,0 +1,3 @@
+[bandit]
+targets = custom_components
+skips = B101

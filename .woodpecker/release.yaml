@@ -1,0 +1,140 @@
+when:
+  event: tag
+
+steps:
+  - name: validate-version
+    image: python:3.12-slim
+    commands:
+      - |
+        TAG="${CI_COMMIT_TAG#v}"
+        MANIFEST_VERSION=$(python3 -c "import json; print(json.load(open('custom_components/pobovi_ring/manifest.json'))['version'])")
+        if [ "$TAG" != "$MANIFEST_VERSION" ]; then
+          echo "ERROR: Tag version ($TAG) does not match manifest.json version ($MANIFEST_VERSION)"
+          echo "Update manifest.json 'version' to $TAG before tagging the release."
+          exit 1
+        fi
+        echo "Version check passed: $TAG"
+
+  # The dashboard cards are inline Lovelace resources in HA storage, so the
+  # SMB copy below cannot update them. Deploy them over the WebSocket API
+  # while HA is still up, before the restart.
+  - name: deploy-cards
+    image: python:3.12-slim
+    environment:
+      SMB_HOST:
+        from_secret: smb_host
+      HA_TOKEN:
+        from_secret: ha_token
+    commands:
+      - pip install -r requirements_scripts.txt
+      - HA_URL="http://$$SMB_HOST:8123" python3 scripts/deploy_cards.py
+
+  - name: deploy-to-ha
+    image: alpine:latest
+    environment:
+      SMB_HOST:
+        from_secret: smb_host
+      SMB_USER:
+        from_secret: smb_user
+      SMB_PASS:
+        from_secret: smb_password
+      HA_TOKEN:
+        from_secret: ha_token
+    commands:
+      - apk add --no-cache samba-client curl
+      - |
+        SHARE="//$$SMB_HOST/config"
+        AUTH="$$SMB_USER%$$SMB_PASS"
+        DEST="custom_components/pobovi_ring"
+
+        # Ensure remote directory structure exists (errors here are non-fatal)
+        smbclient "$SHARE" -U "$AUTH" -c "mkdir custom_components" 2>/dev/null || true
+        smbclient "$SHARE" -U "$AUTH" -c "mkdir $DEST" 2>/dev/null || true
+        smbclient "$SHARE" -U "$AUTH" -c "mkdir $DEST/translations" 2>/dev/null || true
+
+        # Upload root-level component files (.py, .json, .yaml — __pycache__ is implicitly excluded)
+        cd custom_components/pobovi_ring
+        CMDS="cd $DEST"
+        for f in *.py *.json *.yaml; do
+          [ -f "$f" ] && CMDS="$CMDS; put $f $f"
+        done
+        smbclient "$SHARE" -U "$AUTH" -c "$CMDS"
+        echo "Uploaded component files to $DEST"
+
+        # Upload translations subdirectory
+        CMDS="cd $DEST/translations"
+        for f in translations/*.json; do
+          [ -f "$f" ] && CMDS="$CMDS; put $f $(basename "$f")"
+        done
+        smbclient "$SHARE" -U "$AUTH" -c "$CMDS"
+        echo "Uploaded translations to $DEST/translations"
+        cd ../..
+
+        # Trigger a HA restart via the HA REST API
+        HTTP_STATUS=$(curl -s -o /tmp/ha_response.json -w "%{http_code}" \
+          -X POST \
+          -H "Authorization: Bearer $$HA_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{}' \
+          "http://$$SMB_HOST:8123/api/services/homeassistant/restart")
+        if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+          echo "Home Assistant restarted (HTTP $HTTP_STATUS)"
+        else
+          echo "ERROR: HA restart failed (HTTP $HTTP_STATUS)"
+          cat /tmp/ha_response.json
+          exit 1
+        fi
+
+  - name: create-release
+    image: alpine/curl:latest
+    environment:
+      GITEA_TOKEN:
+        from_secret: gitea_token
+    commands:
+      - apk add --no-cache jq
+      - |
+        TAG="${CI_COMMIT_TAG#v}"
+
+        # Extract changelog section for this version
+        NOTES=$(awk "/^## \[$TAG\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md)
+        if [ -z "$NOTES" ]; then
+          echo "WARNING: No changelog entry found for version $TAG"
+          NOTES="See CHANGELOG.md for details."
+        fi
+
+        # Determine pre-release
+        if echo "$CI_COMMIT_TAG" | grep -qE '(alpha|beta)'; then
+          IS_PRERELEASE=true
+        else
+          IS_PRERELEASE=false
+        fi
+
+        # Build JSON payload and call the Gitea releases API
+        PAYLOAD=$(jq -n \
+          --arg tag_name "$CI_COMMIT_TAG" \
+          --arg name "Release $CI_COMMIT_TAG" \
+          --arg body "$NOTES" \
+          --argjson prerelease "$IS_PRERELEASE" \
+          '{
+            tag_name: $tag_name,
+            name: $name,
+            body: $body,
+            draft: false,
+            prerelease: $prerelease
+          }')
+
+        HTTP_STATUS=$(curl -s -o /tmp/api_response.json -w "%{http_code}" \
+          -X POST \
+          -H "Authorization: token $$GITEA_TOKEN" \
+          -H "Content-Type: application/json" \
+          "https://gitea.tgkenney.dev/api/v1/repos/${CI_REPO}/releases" \
+          -d "$PAYLOAD")
+
+        if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+          echo "Release created successfully (HTTP $HTTP_STATUS)"
+          jq -r '.html_url' /tmp/api_response.json
+        else
+          echo "ERROR: Failed to create release (HTTP $HTTP_STATUS)"
+          cat /tmp/api_response.json
+          exit 1
+        fi

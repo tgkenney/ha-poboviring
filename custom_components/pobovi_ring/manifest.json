@@ -1,0 +1,28 @@
+{
+  "domain": "pobovi_ring",
+  "name": "POBOVi Ring",
+  "bluetooth": [
+    {
+      "manufacturer_id": 65535,
+      "manufacturer_data_start": [
+        80,
+        79,
+        66,
+        79
+      ]
+    }
+  ],
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": [
+    "bluetooth"
+  ],
+  "documentation": "https://github.com/tgkenney/home-assistant-pobovi-ring",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/tgkenney/home-assistant-pobovi-ring/issues",
+  "requirements": [
+    "bleak-retry-connector>=3.5.0"
+  ],
+  "version": "0.8.7"
+}

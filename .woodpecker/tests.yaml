@@ -1,0 +1,45 @@
+when:
+  - event: push
+    branch: main
+  - event: pull_request
+
+steps:
+  - name: lint
+    image: python:3.14-slim
+    commands:
+      - pip install ruff bandit
+      - ruff check custom_components/ tests/
+      - bandit -r custom_components/ -s B101
+
+  - name: test
+    image: python:3.14-slim
+    commands:
+      - apt-get update && apt-get install -y --no-install-recommends gcc libc6-dev
+      - pip install -r requirements_test.txt
+      # Audit installed dependencies for known vulnerabilities (warn only, don't block)
+      - pip install pip-audit
+      - pip-audit --desc || true
+      - pytest tests/ -v --tb=short
+
+  - name: secret-scan
+    image: python:3.14-slim
+    commands:
+      - apt-get update && apt-get install -y --no-install-recommends curl
+      - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+      - trivy fs --scanners secret --severity CRITICAL,HIGH --exit-code 1
+          --skip-dirs .venv --skip-dirs __pycache__ .
+
+  # Runs only on push to main (not PRs) — after all checks pass.
+  # Reads CHANGELOG.md [Unreleased], bumps manifest.json, commits [skip ci], and pushes
+  # a vX.Y.Z tag which triggers the release pipeline.
+  - name: bump-and-tag
+    image: python:3.14-slim
+    when:
+      - event: push
+        branch: main
+    environment:
+      GITEA_TOKEN:
+        from_secret: gitea_token
+    commands:
+      - apt-get update && apt-get install -y --no-install-recommends git
+      - python3 scripts/bump_version.py

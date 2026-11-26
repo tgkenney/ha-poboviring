@@ -1,0 +1,48 @@
+flash_firmware:
+  name: Flash ring firmware
+  description: >-
+    Downloads the current POBOVi firmware and flashes it over Bluetooth. Runs
+    safety checks first (link quality, battery, version) and refuses unless
+    they pass. Use dry_run to perform every check without flashing anything.
+    Flashing takes roughly 10-20 minutes and must not be interrupted.
+  fields:
+    entity_id:
+      name: Ring entity
+      description: Any entity belonging to the ring to update.
+      required: true
+      selector:
+        entity:
+          integration: pobovi_ring
+    confirm:
+      name: Confirm
+      description: Must be true. Firmware flashing cannot be undone if it fails.
+      required: true
+      selector:
+        boolean:
+    dry_run:
+      name: Dry run
+      description: >-
+        When true (the default) every check runs but nothing is written to the
+        ring. Set to false to actually flash.
+      default: true
+      selector:
+        boolean:
+    url:
+      name: Firmware URL
+      description: >-
+        Optional explicit firmware URL. Only fl.pobovielectronics.com and
+        app.pobovielectronics.com are accepted.
+      selector:
+        text:
+          type: url
+    version:
+      name: Expected version
+      description: Optional version pin; the update is refused if the vendor offers a different one.
+      selector:
+        text:
+    allow_downgrade:
+      name: Allow same or older version
+      description: Permit re-flashing the same version or downgrading.
+      default: false
+      selector:
+        boolean:
