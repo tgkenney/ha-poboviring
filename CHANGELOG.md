@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-26
+
 ### Added
 - A quality-scale review and roadmap in `docs/quality-scale.md`, covering all
   54 rules of the current Home Assistant integration quality scale.
@@ -121,5 +123,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stores and a retry queue, SparkyFitness upload, ring profile and cycle
   settings, find-my-ring, and the Rings dashboard.
 
-[Unreleased]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.8.7...HEAD
+[Unreleased]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.9.0...HEAD
+[0.9.0]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.8.7...v0.9.0
 [0.8.7]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/releases/tag/v0.8.7
