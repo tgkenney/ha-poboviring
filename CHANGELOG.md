@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-11-27
+
 ### Added
 - Brand assets (`custom_components/pobovi_ring/brand/icon.png` and `logo.png`),
   required for installing the integration through HACS.
@@ -138,6 +140,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stores and a retry queue, SparkyFitness upload, ring profile and cycle
   settings, find-my-ring, and the Rings dashboard.
 
-[Unreleased]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.9.0...HEAD
+[Unreleased]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.10.0...HEAD
+[0.10.0]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.9.0...v0.10.0
 [0.9.0]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.8.7...v0.9.0
 [0.8.7]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/releases/tag/v0.8.7
