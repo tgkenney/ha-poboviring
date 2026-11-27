@@ -53,6 +53,7 @@ from .const import (
     OTA_VERIFY_TIMEOUT,
     OTA_WRITE_BYTES,
     OTA_WRITE_DELAY,
+    OTA_WRITE_DELAY_NO_RESPONSE,
 )
 from .protocol import (
     FirmwareImage,
@@ -151,6 +152,20 @@ class _AmotaSession:
     def __init__(self, client) -> None:
         self._client = client
         self._queue: asyncio.Queue[tuple[int, int, bytes]] = asyncio.Queue()
+        properties: list[str] = []
+        try:
+            characteristic = client.services.get_characteristic(AMOTA_WRITE_UUID)
+        except (AttributeError, KeyError):
+            characteristic = None
+        if characteristic is not None:
+            properties = list(getattr(characteristic, "properties", []) or [])
+        # The vendor app uses WRITE_TYPE_AUTO: a GATT write with response when
+        # the characteristic supports it, otherwise no response. The response
+        # is the per-20-byte-chunk flow control the ring needs for data packets.
+        self._write_response = "write" in properties
+        self._write_delay = (
+            OTA_WRITE_DELAY if self._write_response else OTA_WRITE_DELAY_NO_RESPONSE
+        )
 
     def _on_notify(self, _char, data: bytearray) -> None:
         raw = bytes(data)
@@ -160,10 +175,23 @@ class _AmotaSession:
 
     async def _write(self, packet: bytes) -> None:
         for offset in range(0, len(packet), OTA_WRITE_BYTES):
-            await self._client.write_gatt_char(
-                AMOTA_WRITE_UUID, packet[offset : offset + OTA_WRITE_BYTES], response=False
-            )
-            await asyncio.sleep(OTA_WRITE_DELAY)
+            chunk = packet[offset : offset + OTA_WRITE_BYTES]
+            if self._write_response:
+                try:
+                    await self._client.write_gatt_char(
+                        AMOTA_WRITE_UUID, chunk, response=True
+                    )
+                except (BleakError, ValueError, TypeError):
+                    self._write_response = False
+                    self._write_delay = OTA_WRITE_DELAY_NO_RESPONSE
+                    await self._client.write_gatt_char(
+                        AMOTA_WRITE_UUID, chunk, response=False
+                    )
+            else:
+                await self._client.write_gatt_char(
+                    AMOTA_WRITE_UUID, chunk, response=False
+                )
+            await asyncio.sleep(self._write_delay)
 
     async def _wait(self, cmd: int, wait_seconds: float) -> bytes:
         loop = asyncio.get_running_loop()

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- AMOTA writes now use a GATT write with response when the AMOTA
+  characteristic supports it, as the vendor app's `WRITE_TYPE_AUTO` does, and
+  pace write-no-response chunks at 30 ms. The header was accepted on the first
+  real flash, but the first 512-byte data packet timed out because its 20-byte
+  chunks were sent back-to-back without per-chunk delivery confirmation.
+
 ## [0.10.0] - 2026-11-27
 
 ### Added
