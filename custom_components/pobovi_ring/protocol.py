@@ -459,24 +459,40 @@ def _decode_sleep(frame: RingFrame) -> RingRecord | None:
 def _decode_temperature(frame: RingFrame) -> RingRecord | None:
     """Decode a temperature reading (cmd 0x17).
 
-    Layout from BleRingDataStorage.receiveData: an 8-byte little-endian
-    timestamp followed by an IEEE-754 float32 (little-endian).
+    The app's BleRingDataStorage describes an 8-byte timestamp plus float32,
+    but the rings send an 8-byte payload: a 4-byte little-endian timestamp
+    followed by an IEEE-754 float32. Both layouts are accepted; ``layout``
+    says which was used.
     """
     payload = frame.payload
-    if len(payload) < 12:
-        return None
-    stamp = int.from_bytes(payload[0:8], "little")
-    if not MIN_PLAUSIBLE_TIMESTAMP <= stamp <= MAX_PLAUSIBLE_TIMESTAMP:
-        return None
-    value = struct.unpack_from("<f", payload, 8)[0]
-    if not -20.0 <= value <= 60.0:
-        return None
-    return RingRecord(
-        METRIC_TEMPERATURE,
-        round(value, 2),
-        datetime.fromtimestamp(stamp, UTC),
-        frame.hex,
-    )
+    if len(payload) >= 12:
+        stamp = int.from_bytes(payload[0:8], "little")
+        if MIN_PLAUSIBLE_TIMESTAMP <= stamp <= MAX_PLAUSIBLE_TIMESTAMP:
+            value = struct.unpack_from("<f", payload, 8)[0]
+            if -20.0 <= value <= 60.0:
+                return RingRecord(
+                    METRIC_TEMPERATURE,
+                    round(value, 2),
+                    datetime.fromtimestamp(stamp, UTC),
+                    frame.hex,
+                    {"layout": "ts64+f32"},
+                )
+
+    if len(payload) >= 8:
+        timestamp = _parse_timestamp(payload)
+        if timestamp is None:
+            return None
+        value = struct.unpack_from("<f", payload, 4)[0]
+        if not -20.0 <= value <= 60.0:
+            return None
+        return RingRecord(
+            METRIC_TEMPERATURE,
+            round(value, 2),
+            timestamp,
+            frame.hex,
+            {"layout": "ts32+f32"},
+        )
+    return None
 
 
 def _decode_stress(frame: RingFrame) -> RingRecord | None:

@@ -23,6 +23,7 @@ SLEEP_NIGHT = (
 )
 RESP_138 = "55 aa 6e 08 55 a4 07 6b 4d cd 5c 41"
 RESP_124 = "55 aa 6e 08 26 a7 07 6b 66 30 46 41"
+TEMPERATURE = "55 aa 17 08 a1 53 09 6b 29 5c 09 42"
 
 
 def decode(hex_string: str):
@@ -74,6 +75,15 @@ def test_sleep_record_converts_to_sparky_session_with_stages() -> None:
     assert {event["stage_type"] for event in events} <= {"deep", "light", "rem", "awake"}
     for earlier, later in pairwise(events):
         assert earlier["end_time"] == later["start_time"]
+
+
+def test_temperature_decodes_u32_timestamp() -> None:
+    record = decode(TEMPERATURE)
+    assert record is not None
+    assert record.metric == "temperature"
+    assert abs(record.value - 34.34) < 0.01
+    assert record.timestamp == datetime(2026, 11, 27, 9, 55, 45, tzinfo=UTC)
+    assert record.extra.get("layout") == "ts32+f32"
 
 
 def test_respiration_decodes() -> None:
