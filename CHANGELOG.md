@@ -9,13 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.10.1] - 2026-11-27
-
 ### Fixed
 - Decode the ring's 8-byte temperature frames (4-byte timestamp + float32,
   cmd 0x17), restoring the Temperature sensor for both rings. The decoder
   required a 12-byte 64-bit-timestamp layout the rings do not send, so every
   temperature frame was discarded and the entity stayed unavailable.
+
+## [0.10.1] - 2026-11-27
+
+### Fixed
 
 ### Fixed
 - AMOTA writes now use a GATT write with response when the AMOTA
