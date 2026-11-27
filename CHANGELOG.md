@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.1] - 2026-11-27
+
 ### Fixed
 - AMOTA writes now use a GATT write with response when the AMOTA
   characteristic supports it, as the vendor app's `WRITE_TYPE_AUTO` does, and
@@ -147,7 +149,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   stores and a retry queue, SparkyFitness upload, ring profile and cycle
   settings, find-my-ring, and the Rings dashboard.
 
-[Unreleased]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.10.0...HEAD
+[Unreleased]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.10.1...HEAD
+[0.10.1]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.10.0...v0.10.1
 [0.10.0]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.9.0...v0.10.0
 [0.9.0]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/compare/v0.8.7...v0.9.0
 [0.8.7]: https://gitea.tgkenney.dev/tgkenney/ha-poboviring/releases/tag/v0.8.7
