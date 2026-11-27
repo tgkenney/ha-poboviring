@@ -39,8 +39,12 @@ Reverse engineered from the POBOVi Ring Android app `V1.2.63` (283).
 
 ### HACS
 
-Add `https://gitea.tgkenney.dev/tgkenney/ha-poboviring` as a custom repository
-(category **Integration**), install **POBOVi Ring**, and restart Home Assistant.
+HACS only supports public GitHub repositories. Add the GitHub mirror of this
+repository as a custom repository (category **Integration**), install
+**POBOVi Ring**, and restart Home Assistant.
+
+The Gitea repository is the development source; the GitHub mirror is the
+installation source.
 
 ### Manual
 
@@ -81,13 +85,15 @@ python3 -m venv .venv
 
 Releases are automatic. Add a `CHANGELOG.md` entry under `[Unreleased]` and push
 to `main`: Woodpecker runs the checks, bumps the manifest according to the
-changelog section, commits, tags `vX.Y.Z`, deploys the integration over SMB,
-updates the dashboard cards over the HA WebSocket API, restarts Home Assistant,
-and publishes the Gitea release. Required Woodpecker secrets: `gitea_token`,
-`smb_host`, `smb_user`, `smb_password`, `ha_token`.
+changelog section, commits, tags `vX.Y.Z`, and publishes the Gitea release. The
+integration is installed and updated through HACS from the public GitHub mirror;
+the pipeline does not copy files into the HA config directory. The only
+Woodpecker secret is `gitea_token`.
 
-The cards are stored in Home Assistant as inline Lovelace resources, so the SMB
-copy cannot update them. Deploy them manually after editing:
+The cards are inline Lovelace resources, stored in Home Assistant rather than in
+the integration folder, so they are deployed separately from releases. Update
+them through the Home Assistant dashboard resource API (for example with the MCP
+dashboard resource tool) or with the script:
 
 ```bash
 HA_URL=http://homeassistant.local:8123 HA_TOKEN=... python3 scripts/deploy_cards.py

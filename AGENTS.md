@@ -71,7 +71,8 @@ All integration code is in `custom_components/pobovi_ring/`.
 | `diagnostics.py` | Version, entry, model, stores, Sparky state, OTA state, frame log, snapshot. |
 
 Dashboard card sources live in `cards/` and are deployed as inline Lovelace
-resources (not files under `www/`):
+resources (not files under `www/`). Deploy them through the HA dashboard
+resource API (MCP) or `scripts/deploy_cards.py`; the release pipeline does not:
 
 - `cards/rings-dashboard-card.js` — Overview (battery, steps, tiles, HR spark,
   sleep score, stage bar, find button).
@@ -106,9 +107,9 @@ resources (not files under `www/`):
 - CI: `.woodpecker/tests.yaml` runs ruff, bandit, pytest, secret scanning, then
   `scripts/bump_version.py` on pushes to `main` (empty `[Unreleased]` skips).
 - Release: pushing a `vX.Y.Z` tag runs `.woodpecker/release.yaml`:
-  version check → deploy cards over the HA WebSocket API → SMB upload of the
-  component + translations → HA restart → Gitea release from `CHANGELOG.md`.
-- Woodpecker secrets required: `gitea_token`, `smb_host`, `smb_user`,
-  `smb_password`, `ha_token`.
+  version check → Gitea release from `CHANGELOG.md`. CI has no Home Assistant
+  access. The integration is installed and updated through HACS from the public
+  GitHub mirror.
+- Woodpecker secret required: `gitea_token`.
 - Never commit tokens, API keys, or `.storage` content. Sparky keys live only in
   the HA config entry.

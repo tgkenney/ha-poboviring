@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Brand assets (`custom_components/pobovi_ring/brand/icon.png` and `logo.png`),
+  required for installing the integration through HACS.
+
+### Changed
+- The release pipeline no longer deploys anything to Home Assistant. It bumps,
+  tags and publishes the Gitea release; HACS installs the integration from the
+  public GitHub mirror, and the dashboard cards are deployed separately through
+  the Home Assistant dashboard resource API. Woodpecker needs only
+  `gitea_token`.
+
+### Fixed
+- Overview card per-ring accent colours: the card now honours the documented
+  `color` key; the legacy `accent` key is still supported.
+
 ## [0.9.0] - 2026-11-26
 
 ### Added

@@ -21,7 +21,7 @@ Platinum official, the integration would have to move into core.
 |---|---|---|
 | action-setup | done | Service registered in `async_setup`, not per entry. |
 | appropriate-polling | done | Ring buffers records; 30 min default, configurable; advert-triggered retry on failure. |
-| brands | todo | No brand assets. Add `brand/icon.png` and `brand/logo.png` (local brand) and, for the official tier, submit to the brands repository. |
+| brands | todo | Local brand assets now exist for HACS (`custom_components/pobovi_ring/brand/`); the official rule still needs them submitted to the Home Assistant brands repository. |
 | common-modules | done | `coordinator.py` and `entity.py` exist as expected. |
 | config-flow | done | Bluetooth discovery and manual address flow; data vs options separated. Add `data_description` for the two setup fields. |
 | config-flow-test-coverage | todo | No config-flow tests yet. Needs the HA test harness and success/error/duplicate/discovery paths. |
@@ -95,7 +95,7 @@ Platinum official, the integration would have to move into core.
 
 - Add `quality_scale.yaml` with every rule and current status.
 - Move runtime data to `entry.runtime_data` with a typed `PoboviConfigEntry`.
-- Add brand assets and submit them to the brands repository.
+- Submit the existing brand assets to the brands repository.
 - Add config-flow tests (discovery, manual, duplicate, errors) and the
   `data_description` fields.
 - Decide `test-before-configure` (connection probe or exemption) and align

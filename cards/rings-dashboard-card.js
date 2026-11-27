@@ -151,7 +151,7 @@ class RingsDashboardCard extends HTMLElement {
     this._rings.forEach((ring) => {
       const card = document.createElement('section');
       card.className = 'ring';
-      card.style.setProperty('--accent', ring.accent || '#6366f1');
+      card.style.setProperty('--accent', ring.color || ring.accent || '#6366f1');
       card.innerHTML =
         '<div class="top">' +
           '<div class="batt"><svg viewBox="0 0 56 56"><circle class="t" cx="28" cy="28" r="24"/><circle class="p" cx="28" cy="28" r="24"/></svg><div class="n">--</div></div>' +

@@ -55,7 +55,8 @@ Integration code lives in `custom_components/pobovi_ring/`:
 
 Cards: `cards/rings-dashboard-card.js` (Overview) and
 `cards/rings-trends-card.js` (Trends). They are inline Lovelace resources
-deployed over the HA WebSocket API, not files under `www/`.
+deployed through the HA dashboard resource API (MCP) or
+`scripts/deploy_cards.py`, not files under `www/`.
 
 ## Critical behavior
 
@@ -85,8 +86,10 @@ every decoder or session-selection bug.
 
 - `.woodpecker/tests.yaml`: ruff, bandit, pytest, secret scan, then the
   changelog bump/tag on `main`.
-- `.woodpecker/release.yaml` (tag): version check, card deployment over
-  WebSocket, SMB upload + HA restart, Gitea release from `CHANGELOG.md`.
-- Woodpecker secrets: `gitea_token`, `smb_host`, `smb_user`, `smb_password`,
-  `ha_token`.
+- `.woodpecker/release.yaml` (tag): version check and Gitea release from
+  `CHANGELOG.md`. CI has no Home Assistant access; HACS installs the
+  integration from the public GitHub mirror.
+- Cards: deploy separately through the HA dashboard resource API (MCP) or
+  `scripts/deploy_cards.py`.
+- Woodpecker secret: `gitea_token`.
 - Never commit secrets. Sparky API keys live only in the HA config entry.
